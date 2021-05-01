@@ -8,7 +8,7 @@
 
 class SplashScene extends Phaser.Scene {
   constructor () {
-    super({ key: 'SplashScene'})
+    super({ key: 'SplashScene' })
   }
 
   init (date) {
@@ -23,7 +23,7 @@ class SplashScene extends Phaser.Scene {
   }
 
   update (time, delta) {
-  }  
+  } 
 }
 
 export default SplashScene
