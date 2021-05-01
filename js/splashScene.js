@@ -23,7 +23,7 @@ class SplashScene extends Phaser.Scene {
   }
 
   update (time, delta) {
-  } 
+  }
 }
 
 export default SplashScene
