@@ -9,10 +9,10 @@
 class TitleScene extends Phaser.Scene {
   constructor () {
     super({ key: 'titleScene' })
-    
+
     this.titleSceneBackgroundImage = null
     this.titleSceneText = null
-		this.titleSceneTextStyle = { font: '200px Times', fill: '#fde4b9', align: 'center' }
+    this.titleSceneTextStyle = { font: '200px Times', fill: '#fde4b9', align: 'center' }
   }
 
   init (date) {
