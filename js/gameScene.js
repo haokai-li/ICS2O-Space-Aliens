@@ -1,24 +1,29 @@
-/* Final assignment */
+/* global Phaser */
 
 // Copyright (c) 2021 haokai All rights reserved
 //
 // Created by: haokai
-// Created on: Jun 2021
+// Created on: Apr 2021
 // This is the game Scene
-//change
 
 class GameScene extends Phaser.Scene {
+  // create an alien
+  createAlien () {
+    const alienXLocation = Math.floor(Math.random() * 1920) + 1 // this will get a number between 1 and 1920
+    let alienXVelocity = Math.floor(Math.random() * 50) + 1 // this will get a number between 1 and 50
+    alienXVelocity *= Math.round(Math.random()) ? 1 : -1 // this will add minus sign in 50% of cases
+    const anAlien = this.physics.add.sprite(alienXLocation, -100, 'alien')
+    anAlien.body.velocity.y = 200
+    anAlien.body.velocity.x = alienXVelocity
+    this.alienGroup.add(anAlien)
+  }
+
   constructor () {
     super({ key: 'gameScene' })
 
     this.background = null
     this.ship = null
-    this.startTime = true
-    this.timeAlien = true
-    this.timeb = 0
-    this.timee = 0
-    this.timeTime = 0
-    this.gameOverShow = true
+    this.fireMissle = false
     this.score = 0
     this.scoreText = null
     this.scoreTextStyle = { font: '65px Arial', fill: '#ffffff', align: 'center' }
@@ -49,20 +54,30 @@ class GameScene extends Phaser.Scene {
 
     this.scoreText = this.add.text(10, 10, 'Score: ' + this.score.toString(), this.scoreTextStyle)
 
-
     this.ship = this.physics.add.sprite(1920 / 2, 1080 - 100, 'ship')
+
+    // create a group for the missiles
+    this.missileGroup = this.physics.add.group()
 
     // create a group for the aliens
     this.alienGroup = this.add.group()
+    this.createAlien()
 
-    this.startTime = true
-    this.gameOverShow = true
+    // Colliosions between missiles and aliens
+    this.physics.add.collider(this.missileGroup, this.alienGroup, function (missileCollide, alienCollide) {
+      alienCollide.destroy()
+      missileCollide.destroy()
+      this.sound.play('explosion')
+      this.score = this.score + 1
+      this.scoreText.setText('score: ' + this.score.toString())
+      this.createAlien()
+      this.createAlien()
+    }.bind(this))
 
     // Colliosions between ship and aliens
     this.physics.add.collider(this.ship, this.alienGroup, function (shipCollide, alienCollide) {
       this.sound.play('bomb')
       this.physics.pause()
-      this.gameOverShow = false
       alienCollide.destroy()
       shipCollide.destroy()
       this.gameOverText = this.add.text(1920 / 2, 1080 / 2, 'Game Over!\nClick this to play again!', this.gameOverTextStyle).setOrigin(0.5)
@@ -73,81 +88,45 @@ class GameScene extends Phaser.Scene {
 
   update (time, delta) {
     // called 60 times a second, hopefully!
+
     const keyLeftObj = this.input.keyboard.addKey('LEFT')
     const keyRightObj = this.input.keyboard.addKey('RIGHT')
-    const keyUpObj = this.input.keyboard.addKey('UP')
-    const keyDownObj = this.input.keyboard.addKey('Down')
-
-    // get time of index start
-    let timea = Math.floor(time / 1000)
-    let timec = 0 - Math.floor(time / 1000)
-    // get time of runing of splash, title and menu
-    if (this.startTime == true) {
-      this.startTime = false
-      this.timeb = timec
-    }
-
-    // get time of game runing and give to score
-    if (this.gameOverShow === true) {
-      this.score = Math.floor(time / 1000) + this.timeb
-      this.scoreText.setText('score: ' + this.score.toString())
-    }
+    const keySpaceObj = this.input.keyboard.addKey('SPACE')
 
     if (keyLeftObj.isDown === true) {
       this.ship.x -= 15
       if (this.ship.x < 0) {
-        this.ship.x = 0
+        this.ship.x = 1920
       }
     }
 
     if (keyRightObj.isDown === true) {
       this.ship.x += 15
       if (this.ship.x > 1920) {
-        this.ship.x = 1920
+        this.ship.x = 0
       }
     }
 
-    if (keyUpObj.isDown === true) {
-      this.ship.y -= 15
-      if (this.ship.y < 0) {
-        this.ship.y = 0
+    if (keySpaceObj.isDown === true) {
+      if (this.fireMissle === false) {
+        // fire missiles
+        this.fireMissle = true
+        const aNewMissile = this.physics.add.sprite(this.ship.x, this.ship.y, 'missile')
+        this.missileGroup.add(aNewMissile)
+        this.sound.play('laser')
       }
     }
 
-    if (keyDownObj.isDown === true) {
-      this.ship.y += 15
-      if (this.ship.y > 1080) {
-        this.ship.y = 1080
-      }
+    if (keySpaceObj.isUp === true) {
+      this.fireMissle = false
     }
-    //this destroy old aliens
-    this.alienGroup.children.each(function (item) {
-      if (item.y > 1080) {
+
+    this.missileGroup.children.each(function (item) {
+      item.y = item.y - 15
+      if (item.y < 0) {
         item.destroy()
-        console.log('ok')
       }
     })
-
-    // this create alien each 2 seconds
-    if (this.timeAlien === true) {
-      this.timee = timec
-      this.timeAlien = false
-      const alienXLocation = Math.floor(Math.random() * 1920) + 1 // this will get a number between 1 and 1920
-      let alienXVelocity = Math.floor(Math.random() * 50) + 1 // this will get a number between 1 and 50
-      alienXVelocity *= Math.round(Math.random()) ? 1 : -1 // this will add minus sign in 50% of cases
-      const anAlien = this.physics.add.sprite(alienXLocation, -100, 'alien')
-      anAlien.body.velocity.y = 200
-      anAlien.body.velocity.x = alienXVelocity
-      this.alienGroup.add(anAlien)
-    }
-
-    if (this.timeAlien === false) {
-      this.timeTime = Math.floor(time / 1000) + this.timee
-      if (this.timeTime == 2) {
-        this.timeAlien = true
-      }
-    }
-    console.log(this.timeTime)
   }
 }
 
